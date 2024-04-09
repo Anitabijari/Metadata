@@ -1,0 +1,135 @@
+
+-- 1. Calculation of the average score of students across different course modules and assessment types. DimCourse, DimAssessment,DimStudent,  FactAssessmentResults
+-- 2. Examination of student engagement levels with various types of Virtual Learning Environment (VLE) activities over time. DimVLE, FactVLEInteractions .(Time Dimension)
+
+
+----------------------------------------------------
+
+-- Schema and Table Creation: Below are the SQL statements to create a schema named 'datamart' and various dimensional and fact tables. These tables are structured to support the storage and analysis of student scores, course details, assessment information, and VLE interactions.
+
+
+CREATE SCHEMA datamart;
+go
+
+CREATE TABLE datamart.DimStudent (
+    hashIdStudent VARCHAR(60) PRIMARY KEY,
+    id_Student VARCHAR(60),
+    Gender VARCHAR(3)
+  
+);
+
+
+
+CREATE TABLE datamart.DimCourse (
+    hashIdCourse VARCHAR(60) PRIMARY KEY,
+    codeModule NVARCHAR(60),
+    codePresentation NVARCHAR(60),
+    Length int
+);
+
+
+CREATE TABLE datamart.DimAssessment (
+    hashIdAssessment VARCHAR(60) PRIMARY KEY,
+    id_Assessment VARCHAR(60),
+	codeModule NVARCHAR(60),
+    codePresentation NVARCHAR(60),
+    Assessment_type VARCHAR(45),
+    Weight NVARCHAR(255)
+);
+
+
+CREATE TABLE datamart.DimVLE (
+    hashIdCourseVLE VARCHAR(60) PRIMARY KEY,
+    id_Site VARCHAR(60),
+    Activity_type VARCHAR(255),
+    Week_from INT,
+    Week_TO INT,
+	codeModule NVARCHAR(60),
+    codePresentation NVARCHAR(60)
+);
+
+CREATE TABLE datamart.FactAssessmentResults (
+    hashIdAssessment VARCHAR(60) PRIMARY KEY,
+    hashIdStudent VARCHAR(60),
+    Score FLOAT,
+    DateSubmitted VARCHAR(50)
+);
+
+
+CREATE TABLE datamart.FactVLEInteractions (
+    hashIdStudentVLE VARCHAR(60) PRIMARY KEY,
+	hashIdCourseVLE VARCHAR(60),
+    hashIdStudent VARCHAR(60),
+    Sum_click INT,
+    Date INT
+);
+
+
+CREATE TABLE datamart.FactStudentInformation (
+    hashIdStudent VARCHAR(60) PRIMARY KEY,
+	hashIdCourse VARCHAR(60),
+    Age_band VARCHAR(16),
+    Region VARCHAR(45),
+    Highest_education VARCHAR(45),
+	Num_of_prev_attempts int 
+);
+
+CREATE SCHEMA dataMart
+GO
+
+CREATE TABLE dataMart.StudentDim(
+	hashIdStudent VARCHAR(60) PRIMARY KEY,
+	EffectiveDate DATETIME NOT NULL, -- LoadDate from sat
+	ExpirationDate DATETIME NOT NULL, -- LoadEndDate from sat
+	CurrentFlag BIT NOT NULL,
+	id_Student VARCHAR(40) NOT NULL,
+	Num_of_prev_attempts int,
+	Age_band VARCHAR(16),
+	Imd_band VARCHAR(45),
+	Highest_education VARCHAR(45),
+	Final_result VARCHAR(45),
+	Studied_credits int,
+	Region varchar(45),
+	Gender varchar(4),
+	Disability varchar(16)
+)
+
+CREATE TABLE dataMart.assessmentsDim(
+	hashIdAssessment VARCHAR(60) PRIMARY KEY,
+	id_Assessment VARCHAR(40) NOT NULL,
+	Assessment_type VARCHAR(100),
+	Weight VARCHAR(50),
+	Date  VARCHAR(45)
+)
+
+CREATE TABLE dataMart.CourseDim(
+	hashIdCourse VARCHAR(60) PRIMARY KEY,
+	codePresentation VARCHAR(40) NOT NULL,
+	codeModule VARCHAR(40) NOT NULL,
+	Date_registration int,
+	Length VARCHAR(100),
+	Date_unregistration  int
+)
+CREATE TABLE dataMart.VLEDim(
+	hashIdStudentVLE VARCHAR(60) PRIMARY KEY,
+	id_Site VARCHAR(40) NOT NULL,
+	Date  int,
+	Activity_type VARCHAR(50),
+	Week_from  int ,
+	Week_TO int 
+)
+
+
+CREATE TABLE dataMart.StudentFact(
+    hashIdStudent VARCHAR(60) PRIMARY KEY, 
+    hashIdCourse VARCHAR(60) NOT NULL,
+    hashIdStudentVLE VARCHAR(60) NOT NULL,
+    hashIdAssessment VARCHAR(60) NOT NULL,
+    Sum_click INT,
+    load_date DATETIME,
+    record_source VARCHAR(60),
+    FOREIGN KEY (hashIdStudent) REFERENCES dataMart.StudentDim(hashIdStudent),
+    FOREIGN KEY (hashIdCourse) REFERENCES dataMart.CourseDim(hashIdCourse),
+    FOREIGN KEY (hashIdStudentVLE) REFERENCES dataMart.VLEDim(hashIdStudentVLE),
+    FOREIGN KEY (hashIdAssessment) REFERENCES dataMart.AssessmentsDim(hashIdAssessment)
+);
